@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <title>Telegram NLP</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Simple Flask App</h1>
+        
+        <div class="input-container">
+            <input type="text" id="inputField">
+            <button onclick="addItem()">Add Item</button>
+        </div>
+        
+        <div class="lists-container">
+            <div class="list" id="list1">
+                <h2>List 1</h2>
+                <ul></ul>
+            </div>
+            <div class="list" id="list2">
+                <h2>List 2</h2>
+                <ul></ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function addItem() {
+            var inputField = document.getElementById('inputField');
+            var listItem = document.createElement('li');
+            listItem.innerText = inputField.value;
+            document.getElementById('list1').appendChild(listItem);
+            inputField.value = '';
+        }
+    </script>
+</body>
+</html>
