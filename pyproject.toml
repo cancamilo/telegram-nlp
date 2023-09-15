@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "data-playground"
+version = "0.1.0"
+description = ""
+authors = ["Camilo Ramirez <camilo.ramirez@onlyfy.com>"]
+readme = "README.md"
+packages = [{include = "data_playground"}]
+
+[tool.poetry.dependencies]
+python = ">3.8, <3.11"
+ipykernel = "^6.25.0"
+pandas = "^2.0.3"
+openai = "^0.27.8"
+telethon = "^1.29.2"
+python-dotenv = "^1.0.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
