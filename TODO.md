@@ -1,5 +1,7 @@
 # TODO list
 
+## ML
+
 - Implement the loading of the data from s3 [x]
 - Follow along [this guide](https://huggingface.co/docs/sagemaker/getting-started) to start a fine tuning job on my data [x]
 
@@ -17,13 +19,28 @@
     - For optimizing cost, consider using sagemaker training compiler as done in [this notebook](https://github.com/huggingface/notebooks/blob/226b30b12d3f8102098cd3713a568954ca238936/sagemaker/15_training_compiler/sagemaker-notebook.ipynb). []
 
 
+
+## Backend
+
+- Implement logic to remember user session
+
+## Frontend
+
 - Find out how to deploy a simple frontend where the service can be used. e.g Giving a channel ID and getting the best/worst comments. []
+
+- Implement with react + typescript.
+
+## Other
 
 
 - Fint out how to do a similar but more advanced service for semantic search in telegram channels. 
     - Investigate what kind of data is needed for this. []
 
 - Expriment with fine tuning LAMA locally. Explained here https://www.youtube.com/watch?v=3fsn19OI_C8&ab_channel=AbhishekThakur
+
+- Frontend
+
+Keep 
 
 
 

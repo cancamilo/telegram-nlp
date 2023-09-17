@@ -1,33 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <title>Telegram NLP</title>
 </head>
+
 <body>
+    <header>
+        <nav>
+            <div class="top-bar">
+                <h1>Telegram NLP</h1>
+                <div id="loginbar">
+                    <div id="loginContainer" style="display:block;">
+                        <input type="text" id="phoneNumber" placeholder="Phone Number">
+                        <button id="loginButton" onclick="login()">Login</button>
+                    </div>
+                    <div id="logoutContainer" style="display:none;">
+                        <button onclick="logout()">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
     <div class="container">
-        <h1>Simple Flask App</h1>
-        
         <div class="input-container">
-            <input type="text" id="inputField">
-            <button onclick="addItem()">Add Item</button>
+            <input type="text" id="inputField" placeholder="Telegram channel ID">
+            <button onclick="addItem()" id="addItemButton">Add Item</button>
         </div>
-        
+
         <div class="lists-container">
             <div class="list" id="list1">
-                <h2>List 1</h2>
+                <h2>Top positive</h2>
                 <ul></ul>
             </div>
             <div class="list" id="list2">
-                <h2>List 2</h2>
+                <h2>Top negative</h2>
                 <ul></ul>
             </div>
         </div>
     </div>
 
     <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Check if the user is logged in (assuming you have a session variable 'phone_number')
+            var phoneNumber = "{{ session.get('phone_number') }}"; // Flask syntax for getting a session variable
+
+            console.log(phoneNumber)
+
+            if (phoneNumber) {
+                // User is logged in
+                document.getElementById('phoneNumber').value = phoneNumber;
+                disableLogin()
+            } else {
+                // User is not logged in
+                enableLogin()
+            }
+        });
+
+        function enableLogin() {
+            document.getElementById('phoneNumber').disabled = false;
+            document.getElementById('loginButton').disabled = false;
+            document.getElementById('phoneNumber').value = '';
+            document.getElementById('logoutContainer').style.display = 'none';
+            document.getElementById('loginContainer').style.display = 'block';
+            document.getElementById('inputField').disabled = true;
+            document.getElementById('addItemButton').disabled = true;
+
+
+        }
+
+        function disableLogin() {
+            document.getElementById('phoneNumber').disabled = true;
+            document.getElementById('loginButton').disabled = true;
+            document.getElementById('loginContainer').style.display = 'none';
+            document.getElementById('logoutContainer').style.display = 'block';
+            document.getElementById('inputField').disabled = false;
+            document.getElementById('addItemButton').disabled = false;
+        }
+
         function addItem() {
             var inputField = document.getElementById('inputField');
             var listItem = document.createElement('li');
@@ -46,6 +100,36 @@
                 .catch(error => console.error('Error:', error));
 
             inputField.value = '';
+        }
+
+        function login() {
+            var phoneNumber = document.getElementById('phoneNumber').value;
+
+            // Send a request to the backend to perform login
+            fetch(`/login?phoneNumber=${phoneNumber}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        disableLogin()
+                        alert('Login successful!');
+                    } else {
+                        alert('Login failed. Please try again.');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function logout() {
+            fetch(`/logout`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        enableLogin()
+                    } else {
+                        alert('Logout failed');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
         }
     </script>
 </body>
