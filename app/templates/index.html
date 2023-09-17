@@ -32,7 +32,19 @@
             var inputField = document.getElementById('inputField');
             var listItem = document.createElement('li');
             listItem.innerText = inputField.value;
-            document.getElementById('list1').appendChild(listItem);
+            document.getElementById('list1').getElementsByTagName('ul')[0].appendChild(listItem);
+            // Get the input value
+            var inputValue = inputField.value;
+
+            // Send a request to the backend with the input value as a query parameter
+            fetch(`/get_data?inputValue=${inputValue}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Process the data from the backend
+                    console.log(data);
+                })
+                .catch(error => console.error('Error:', error));
+
             inputField.value = '';
         }
     </script>
