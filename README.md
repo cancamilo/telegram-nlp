@@ -39,9 +39,6 @@ To install just run ```poetry install```
 
 It is neccesary to have an additional way to setup the environment with conda since it supports pytorch and tensorflow.
 
-
-# 
-
 to create a conda environemnt with a specific python version
 
 ```conda create -n tensorenv python=3.10```
@@ -53,6 +50,14 @@ to activate the environment:
 to install a dependency inside the environment:
 
 ```conda install tesorflow```
+
+to create a conda environment from a yaml file:
+
+```conda env create -f environment.yml```
+
+to remove a conda environment:
+
+```conda env remove --name $env```
 
 ## TODO's
 

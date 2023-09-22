@@ -23,6 +23,7 @@
 ## Backend
 
 - Implement logic to remember user session
+    - Fix the login logic. If the session exists, and the user logs out, on logging again the flow will not work.
 
 ## Frontend
 

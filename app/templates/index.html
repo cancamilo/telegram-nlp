@@ -46,19 +46,21 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Check if the user is logged in (assuming you have a session variable 'phone_number')
-            var phoneNumber = "{{ session.get('phone_number') }}"; // Flask syntax for getting a session variable
+            //// Check if the user is logged in (assuming you have a session variable 'phone_number')
+            console.log("page loaded")
+            // var phoneNumber = "{{ session.get('phone_number') }}"; // Flask syntax for getting a session variable
 
-            console.log(phoneNumber)
+            // console.log("{{ session.pop('phone_number', None) }}")
+            
 
-            if (phoneNumber) {
-                // User is logged in
-                document.getElementById('phoneNumber').value = phoneNumber;
-                disableLogin()
-            } else {
-                // User is not logged in
-                enableLogin()
-            }
+            // if (phoneNumber != 'None') {
+            //     // User is logged in
+            //     document.getElementById('phoneNumber').value = phoneNumber;
+            //     disableLogin()
+            // } else {
+            //     // User is not logged in
+            //     enableLogin()
+            // }
         });
 
         function enableLogin() {
@@ -110,8 +112,17 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
+                        let code = prompt("Provide the code sent to your phone")
+                        return fetch(`/apply_code?code=${code}`)
+                    } else {
+                        alert('Login failed. Please try again.');
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Login succesful')
                         disableLogin()
-                        alert('Login successful!');
                     } else {
                         alert('Login failed. Please try again.');
                     }
