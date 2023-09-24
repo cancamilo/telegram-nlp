@@ -13,28 +13,29 @@ def get_env(name, message):
         return os.environ[name]
     return input(message)
 
-BASE_TEMPLATE = '''
-<!DOCTYPE html>
-<html>
-    <head>
-        <meta charset='UTF-8'>
-        <title>Telethon + Quart</title>
-    </head>
-    <body>{{ content | safe }}</body>
-</html>
-'''
-
 PHONE_FORM = '''
 <form action='/' method='post'>
-    Phone (international format): <input name='phone' type='text' placeholder='+34600000000'>
-    <input type='submit'>
+    <h1 class="form-title">Login to telegram</h1>
+    <div class="form-group">
+    <label for="phone">Phone number:</label>
+    <input type="phone" id="phone" name="phone" required>
+    </div>
+    <div class="form-group">
+    <button type="submit">Submit</button>
+    </div>
 </form>
 '''
 
 CODE_FORM = '''
 <form action='/' method='post'>
-    Telegram code: <input name='code' type='text' placeholder='70707'>
-    <input type='submit'>
+    <h1 class="form-title">Login to telegram</h1>
+    <div class="form-group">
+    <label for="code">Telegram code:</label>
+    <input type="text" id="code" name="code" required>
+    </div>
+    <div class="form-group">
+    <button type="submit">Submit</button>
+    </div>
 </form>
 '''
 
@@ -60,7 +61,6 @@ app = Quart(__name__)
 app.secret_key = 'secret'
 
 loop = client.loop
-
 
 # Helper method to format messages nicely
 async def format_message(message):
@@ -95,54 +95,53 @@ async def startup():
 async def cleanup():
     await client.disconnect()
 
-@app.route("/")
-async def index():
-    return await render_template_string(BASE_TEMPLATE, content=CODE_FORM)
+# @app.route("/")
+# async def index():
+#     return await render_template("login_template.html", content=PHONE_FORM)
 
-@app.route('/login', methods=['GET', 'POST'])
-async def login():
+@app.route('/', methods=['GET', 'POST'])
+async def root():
+    # return await render_template("form_frame.html", content=PHONE_FORM)
+    
     # We want to update the global phone variable to remember it
     global phone
 
-    if request.method == "GET":
-        # We have the phone, but we're not logged in, so ask for the code
-        return await render_template_string(BASE_TEMPLATE, content=CODE_FORM)
+    # Check form parameters (phone/code)
+    form = await request.form
+    if 'phone' in form:
+        print("phone submited...sending code")
+        phone = form['phone']
+        await client.send_code_request(phone)
 
-    # # Check form parameters (phone/code)
-    # form = await request.form
-    # if 'phone' in form:
-    #     phone = form['phone']
-    #     await client.send_code_request(phone)
+    if 'code' in form:
+        print("code submited...signing in")
+        try:
+            await client.sign_in(code=form['code'])
+        except SessionPasswordNeededError:
+            return await render_template("form_frame.html", content=PASSWORD_FORM)
 
-    # if 'code' in form:
-    #     try:
-    #         await client.sign_in(code=form['code'])
-    #     except SessionPasswordNeededError:
-    #         return await render_template_string(BASE_TEMPLATE, content=PASSWORD_FORM)
+    if 'password' in form:
+        print("signing in with password")
+        await client.sign_in(password=form['password'])
 
-    # if 'password' in form:
-    #     await client.sign_in(password=form['password'])
+    # If we're logged in, show them some messages from their first dialog
+    if await client.is_user_authorized():
+        # They are logged in, show them some messages from their first dialog
+        dialog = (await client.get_dialogs())[0]
+        result = '<h1>{}</h1>'.format(dialog.title)
+        async for m in client.iter_messages(dialog, 10):
+            result += await(format_message(m))
 
-    # # If we're logged in, show them some messages from their first dialog
-    # if await client.is_user_authorized():
-    #     # They are logged in, show them some messages from their first dialog
-    #     dialog = (await client.get_dialogs())[0]
-    #     result = '<h1>{}</h1>'.format(dialog.title)
-    #     async for m in client.iter_messages(dialog, 10):
-    #         result += await(format_message(m))
+        return await render_template("form_frame.html", content=result)
+    
+    # Ask for phone if not available
+    if phone is None:
+        print("no phone...rendering phone form")
+        return await render_template("form_frame.html", content=PHONE_FORM)
 
-    #     return await render_template_string(BASE_TEMPLATE, content=result)
+    # We have the phone, but we're not logged in, so ask for the code
+    print("phone but no code...rendering code form")
+    return await render_template("form_frame.html", content=CODE_FORM)
 
-    # # Ask for the phone if we don't know it yet
-    # if phone is None:
-    #     return await render_template_string(BASE_TEMPLATE, content=PHONE_FORM)    
-
-
-# By default, `Quart.run` uses `asyncio.run()`, which creates a new asyncio
-# event loop. If we had connected the `TelegramClient` before, `telethon` will
-# use `asyncio.get_running_loop()` to create some additional tasks. If these
-# loops are different, it won't work.
-#
-# To keep things simple, be sure to not create multiple asyncio loops!
 if __name__ == '__main__':    
     app.run(debug=True, loop = loop)
