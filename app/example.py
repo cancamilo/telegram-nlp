@@ -1,7 +1,7 @@
 import base64
 import os
 from dotenv import load_dotenv, find_dotenv
-from quart import Quart, render_template_string, render_template, request
+from quart import Quart, session, render_template, request, redirect
 from telethon import TelegramClient, utils
 from telethon.errors import SessionPasswordNeededError
 import asyncio
@@ -52,15 +52,13 @@ API_ID = int(get_env('TELEGRAM_API_ID', 'Enter your API ID: '))
 API_HASH = get_env('TELEGRAM_API_HASH', 'Enter your API hash: ')
 
 # Telethon client
-client = TelegramClient("s1", API_ID, API_HASH)
-client.parse_mode = 'html'  # <- Render things nicely
-phone = None
+# client = TelegramClient("s1", API_ID, API_HASH)
+# client.parse_mode = 'html'  # <- Render things nicely
+# phone = None
 
 # Quart app
 app = Quart(__name__)
 app.secret_key = 'secret'
-
-loop = client.loop
 
 # Helper method to format messages nicely
 async def format_message(message):
@@ -79,15 +77,14 @@ async def format_message(message):
         message.date
     )
 
-
 # Connect the client before we start serving with Quart
-@app.before_serving
-async def startup():
-    # After connecting, the client will create additional asyncio tasks that run until it's disconnected again.
-    # Be careful to not mix different asyncio loops during a client's lifetime, or things won't work properly!
-    print("connecting client", client.api_id)
-    await client.connect()
-    print("client connected")
+# @app.before_serving
+# async def startup():
+#     # After connecting, the client will create additional asyncio tasks that run until it's disconnected again.
+#     # Be careful to not mix different asyncio loops during a client's lifetime, or things won't work properly!
+#     print("connecting client", client.api_id)
+#     await client.connect()
+#     print("client connected")
 
 
 # After we're done serving (near shutdown), clean up the client
@@ -99,49 +96,111 @@ async def cleanup():
 # async def index():
 #     return await render_template("login_template.html", content=PHONE_FORM)
 
-@app.route('/', methods=['GET', 'POST'])
+clients = {}
+
+async def find_client(phone):
+    if phone in clients:
+        return clients[phone]
+    else:
+        client = TelegramClient(phone, API_ID, API_HASH)
+        await client.connect()
+        clients[phone] = client
+        return client
+
+
+async def add_client(phone):
+    client = TelegramClient(phone, API_ID, API_HASH)
+    clients[phone] =  client
+    await client.connect()
+    return client
+
+@app.route("/", methods=["GET", "POST"])
 async def root():
-    # return await render_template("form_frame.html", content=PHONE_FORM)
+
+    if request.method == "GET":
+        # Check client
+        if not session.get("phone"):
+            return await render_template("form_frame.html", content=PHONE_FORM)
+        
+        # Retrieve client
+        phone = session.get("phone")
+        client = await find_client(phone)
+
+        if await client.is_user_authorized():
+            # They are logged in, show them some messages from their first dialog
+            dialog = (await client.get_dialogs())[0]
+            result = '<h1>{}</h1>'.format(dialog.title)
+            async for m in client.iter_messages(dialog, 10):
+                result += await(format_message(m))
+
+            return await render_template("form_frame.html", content=result)
+        else:
+            return "client not authorized...TODO:what to do now?"
+        
     
-    # We want to update the global phone variable to remember it
-    global phone
+    if request.method == "POST":
+        form = await request.form
+        if "phone" in form:
+            print("got phone in form")
+            phone = form['phone']
+            new_client = await add_client(phone)
+            await new_client.send_code_request(phone)
+            session["phone"] = phone 
+            return await render_template("form_frame.html", content=CODE_FORM)
 
-    # Check form parameters (phone/code)
-    form = await request.form
-    if 'phone' in form:
-        print("phone submited...sending code")
-        phone = form['phone']
-        await client.send_code_request(phone)
-
-    if 'code' in form:
-        print("code submited...signing in")
-        try:
+        if 'code' in form:
+            print("code submited...signing in")
+            phone = session.get("phone")
+            client = find_client(phone)
             await client.sign_in(code=form['code'])
-        except SessionPasswordNeededError:
-            return await render_template("form_frame.html", content=PASSWORD_FORM)
+            return redirect("/")
+        
+        return "TODO: what to do here?"
 
-    if 'password' in form:
-        print("signing in with password")
-        await client.sign_in(password=form['password'])
 
-    # If we're logged in, show them some messages from their first dialog
-    if await client.is_user_authorized():
-        # They are logged in, show them some messages from their first dialog
-        dialog = (await client.get_dialogs())[0]
-        result = '<h1>{}</h1>'.format(dialog.title)
-        async for m in client.iter_messages(dialog, 10):
-            result += await(format_message(m))
-
-        return await render_template("form_frame.html", content=result)
+# @app.route('/test', methods=['GET', 'POST'])
+# async def root_test():
+#     # return await render_template("form_frame.html", content=PHONE_FORM)
     
-    # Ask for phone if not available
-    if phone is None:
-        print("no phone...rendering phone form")
-        return await render_template("form_frame.html", content=PHONE_FORM)
+#     # We want to update the global phone variable to remember it
+#     global phone
 
-    # We have the phone, but we're not logged in, so ask for the code
-    print("phone but no code...rendering code form")
-    return await render_template("form_frame.html", content=CODE_FORM)
+#     # Check form parameters (phone/code)
+#     form = await request.form
+#     if 'phone' in form:
+#         print("phone submited...sending code")
+#         phone = form['phone']
+#         await client.send_code_request(phone)
+
+#     if 'code' in form:
+#         print("code submited...signing in")
+#         try:
+#             await client.sign_in(code=form['code'])
+#         except SessionPasswordNeededError:
+#             return await render_template("form_frame.html", content=PASSWORD_FORM)
+
+#     if 'password' in form:
+#         print("signing in with password")
+#         await client.sign_in(password=form['password'])
+
+#     # If we're logged in, show them some messages from their first dialog
+#     if await client.is_user_authorized():
+#         # They are logged in, show them some messages from their first dialog
+#         dialog = (await client.get_dialogs())[0]
+#         result = '<h1>{}</h1>'.format(dialog.title)
+#         async for m in client.iter_messages(dialog, 10):
+#             result += await(format_message(m))
+
+#         return await render_template("form_frame.html", content=result)
+    
+#     # Ask for phone if not available
+#     if phone is None:
+#         print("no phone...rendering phone form")
+#         return await render_template("form_frame.html", content=PHONE_FORM)
+
+#     # We have the phone, but we're not logged in, so ask for the code
+#     print("phone but no code...rendering code form")
+#     return await render_template("form_frame.html", content=CODE_FORM)
 
 if __name__ == '__main__':    
-    app.run(debug=True, loop = loop)
+    app.run(debug=True)
