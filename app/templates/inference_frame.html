@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <title>Telegram NLP</title>
+</head>
+
+<body>
+  <header>
+    <nav>
+      <ul>
+        <li><a href="#">Home</a></li>
+        <li><a href="#">About</a></li>
+        <li><a href="#">Contact</a></li>
+        <li class="logout"><a href="/logout" onclick="logout()">Logout</a></li>
+      </ul>
+    </nav>
+  </header>
+  <main>
+    <div class="content">
+      <div class="text-frame">
+        Provide a telegram channel to analyze sentiment
+      </div>
+      <div class="input-container">
+        <input type="text" id="channelInput" placeholder="Telegram channel ID">
+        <button onclick="getMessages()" id="addItemButton">Add Item</button>
+      </div>
+      <div class="lists-container">
+        <div class="list" id="positiveList">
+          <h2>Top positive</h2>
+          <ul></ul>
+        </div>
+        <div class="list" id="list2">
+          <h2>Top negative</h2>
+          <ul></ul>
+        </div>
+      </div>
+    </div>
+  </main>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      //// Check if the user is logged in (assuming you have a session variable 'phone_number')
+      console.log("page loaded")
+      var phoneNumber = "{{ session.get('phone_number') }}"; // Flask syntax for getting a session variable
+      console.log("phoneNumber ", phoneNumber)
+      // console.log("{{ session.pop('phone_number', None) }}")
+
+
+      // if (phoneNumber != 'None') {
+      //     // User is logged in
+      //     document.getElementById('phoneNumber').value = phoneNumber;
+      //     disableLogin()
+      // } else {
+      //     // User is not logged in
+      //     enableLogin()
+      // }
+    });
+
+    function getMessages() {
+      console.log("getting messages")
+      var channelId = document.getElementById('channelInput').value;
+      fetch(`get_messages?channel_id=${channelId}&n=${10}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            console.log(data.messages)
+            renderList(data.messages)
+          } else {
+            console.log("could not fetch messages???")
+          }
+        }).catch(e=> console.log(e))
+
+    }
+
+    function renderList(messages) {
+      const listElement = document.getElementById('positiveList');
+      messages.forEach(element => {
+        const listItem = document.createElement('li');
+        listItem.textContent = element; // Assuming each item has a "name" property
+        listElement.appendChild(listItem);
+      });
+
+
+    }
+  </script>
+</body>
+
+</html>

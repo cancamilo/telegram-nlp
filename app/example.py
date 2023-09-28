@@ -1,19 +1,21 @@
 import base64
 import os
 from dotenv import load_dotenv, find_dotenv
-from quart import Quart, session, render_template, request, redirect
+from quart import Quart, session, render_template, request, redirect, jsonify
 from telethon import TelegramClient, utils
 from telethon.errors import SessionPasswordNeededError
 import asyncio
 
 load_dotenv(find_dotenv())
 
+
 def get_env(name, message):
     if name in os.environ:
         return os.environ[name]
     return input(message)
 
-PHONE_FORM = '''
+
+PHONE_FORM = """
 <form action='/' method='post'>
     <h1 class="form-title">Login to telegram</h1>
     <div class="form-group">
@@ -24,9 +26,9 @@ PHONE_FORM = '''
     <button type="submit">Submit</button>
     </div>
 </form>
-'''
+"""
 
-CODE_FORM = '''
+CODE_FORM = """
 <form action='/' method='post'>
     <h1 class="form-title">Login to telegram</h1>
     <div class="form-group">
@@ -37,19 +39,19 @@ CODE_FORM = '''
     <button type="submit">Submit</button>
     </div>
 </form>
-'''
+"""
 
-PASSWORD_FORM = '''
+PASSWORD_FORM = """
 <form action='/' method='post'>
     Telegram password: <input name='password' type='text' placeholder='your password'>
     <input type='submit'>
 </form>
-'''
+"""
 
 # Session name, API ID and hash to use; loaded from environmental variables
-SESSION = os.environ.get('TG_SESSION', 'quart')
-API_ID = int(get_env('TELEGRAM_API_ID', 'Enter your API ID: '))
-API_HASH = get_env('TELEGRAM_API_HASH', 'Enter your API hash: ')
+SESSION = os.environ.get("TG_SESSION", "quart")
+API_ID = int(get_env("TELEGRAM_API_ID", "Enter your API ID: "))
+API_HASH = get_env("TELEGRAM_API_HASH", "Enter your API hash: ")
 
 # Telethon client
 # client = TelegramClient("s1", API_ID, API_HASH)
@@ -58,24 +60,24 @@ API_HASH = get_env('TELEGRAM_API_HASH', 'Enter your API hash: ')
 
 # Quart app
 app = Quart(__name__)
-app.secret_key = 'secret'
+app.secret_key = "secret"
+
 
 # Helper method to format messages nicely
 async def format_message(message):
     if message.photo:
         content = '<img src="data:image/png;base64,{}" alt="{}" />'.format(
             base64.b64encode(await message.download_media(bytes)).decode(),
-            message.raw_text
+            message.raw_text,
         )
     else:
         # client.parse_mode = 'html', so bold etc. will work!
-        content = (message.text or '(action message)').replace('\n', '<br>')
+        content = (message.text or "(action message)").replace("\n", "<br>")
 
-    return '<p><strong>{}</strong>: {}<sub>{}</sub></p>'.format(
-        utils.get_display_name(message.sender),
-        content,
-        message.date
+    return "<p><strong>{}</strong>: {}<sub>{}</sub></p>".format(
+        utils.get_display_name(message.sender), content, message.date
     )
+
 
 # Connect the client before we start serving with Quart
 # @app.before_serving
@@ -90,38 +92,59 @@ async def format_message(message):
 # After we're done serving (near shutdown), clean up the client
 @app.after_serving
 async def cleanup():
-    await client.disconnect()
+    # TODO: Disconnect all clients
+    # await client.disconnect()
+    print("service stopped")
+
 
 # @app.route("/")
 # async def index():
 #     return await render_template("login_template.html", content=PHONE_FORM)
 
+sessions_path = "sessions_data"
 clients = {}
 
+
 async def find_client(phone):
-    if phone in clients:
-        return clients[phone]
-    else:
-        client = TelegramClient(phone, API_ID, API_HASH)
-        await client.connect()
-        clients[phone] = client
-        return client
-
-
-async def add_client(phone):
-    client = TelegramClient(phone, API_ID, API_HASH)
-    clients[phone] =  client
+    client = clients.get(
+        phone, TelegramClient(f"{sessions_path}/{phone}", API_ID, API_HASH)
+    )
     await client.connect()
+    clients[phone] = client
     return client
+
+async def remove_client(phone):
+    client = clients.get(
+        phone, TelegramClient(f"{sessions_path}/{phone}", API_ID, API_HASH)
+    )    
+    await client.connect()
+    await client.log_out()
+    clients[phone] = None
+
+@app.route("/logout", methods=["GET"])
+async def logout():
+    print("logging out")
+    
+    phone_number = session.pop("phone", None)
+    if phone_number is not None:
+        try:
+            await remove_client(phone_number)
+            return await render_template("form_frame.html", content=PHONE_FORM)
+        except Exception as e:
+            print(f"Unable to logout client {phone_number}", e)
+            return redirect("/")
+    else:
+        print("Already logged out")
+        return redirect("/")
+
 
 @app.route("/", methods=["GET", "POST"])
 async def root():
-
     if request.method == "GET":
         # Check client
         if not session.get("phone"):
             return await render_template("form_frame.html", content=PHONE_FORM)
-        
+
         # Retrieve client
         phone = session.get("phone")
         client = await find_client(phone)
@@ -129,39 +152,74 @@ async def root():
         if await client.is_user_authorized():
             # They are logged in, show them some messages from their first dialog
             dialog = (await client.get_dialogs())[0]
-            result = '<h1>{}</h1>'.format(dialog.title)
+            result = "<h1>{}</h1>".format(dialog.title)
             async for m in client.iter_messages(dialog, 10):
-                result += await(format_message(m))
+                result += await format_message(m)
 
-            return await render_template("form_frame.html", content=result)
+            return await render_template("inference_frame.html", content="empty")
         else:
-            return "client not authorized...TODO:what to do now?"
-        
-    
+            # TODO: phone exists in session but client is not authorized. Redirect to login?
+            return await render_template("form_frame.html", content=PHONE_FORM)
+
     if request.method == "POST":
         form = await request.form
         if "phone" in form:
-            print("got phone in form")
-            phone = form['phone']
-            new_client = await add_client(phone)
+            phone = form["phone"]
+            print("got phone in form", phone)
+            new_client = await find_client(phone)
             await new_client.send_code_request(phone)
-            session["phone"] = phone 
+            session["phone"] = phone
             return await render_template("form_frame.html", content=CODE_FORM)
 
-        if 'code' in form:
+        if "code" in form:
             print("code submited...signing in")
             phone = session.get("phone")
-            client = find_client(phone)
-            await client.sign_in(code=form['code'])
+            client = await find_client(phone)
+            await client.sign_in(code=form["code"])
             return redirect("/")
-        
-        return "TODO: what to do here?"
 
+        # Form not filled, rendering login form again
+        print("Empty form")
+        return await render_template("form_frame.html", content=result)
+
+
+@app.route("/get_messages", methods=["GET"])
+async def get_messages():
+    messages = []
+
+    input_channel = str(request.args.get("channel_id"))
+    n_messages = int(request.args.get("n"))
+
+    print("input channel", input_channel)
+    print("n_messages", n_messages)
+
+    phone = session["phone"]
+    if phone is None:
+        return jsonify({"success": False})    
+    
+    print("fetching client...")
+    client = await find_client(phone)    
+    
+    async with client:
+        # Ensure you're authorized
+        if not await client.is_user_authorized():
+            raise Exception("Client not auhtorized")
+            
+        print("fetching data for ", input_channel)
+        try:
+            async for msg in client.iter_messages(input_channel, n_messages):
+                print(msg.message)
+                messages.append(msg.message)
+
+            return jsonify({"success": True, "messages": messages})
+        except Exception as e:
+            print(f"Cannot get all messages for {input_channel}", e)
+            return jsonify({"success": False, "messages": messages})
 
 # @app.route('/test', methods=['GET', 'POST'])
 # async def root_test():
 #     # return await render_template("form_frame.html", content=PHONE_FORM)
-    
+
 #     # We want to update the global phone variable to remember it
 #     global phone
 
@@ -192,7 +250,7 @@ async def root():
 #             result += await(format_message(m))
 
 #         return await render_template("form_frame.html", content=result)
-    
+
 #     # Ask for phone if not available
 #     if phone is None:
 #         print("no phone...rendering phone form")
@@ -202,5 +260,5 @@ async def root():
 #     print("phone but no code...rendering code form")
 #     return await render_template("form_frame.html", content=CODE_FORM)
 
-if __name__ == '__main__':    
+if __name__ == "__main__":
     app.run(debug=True)
