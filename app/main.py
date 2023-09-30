@@ -1,13 +1,16 @@
 import base64
 import os
+import sys
+import torch
+import platform
 from dotenv import load_dotenv, find_dotenv
 from quart import Quart, session, render_template, request, redirect, jsonify
 from telethon import TelegramClient, utils
 from telethon.errors import SessionPasswordNeededError
+
 import asyncio
 
 load_dotenv(find_dotenv())
-
 
 def get_env(name, message):
     if name in os.environ:
@@ -137,10 +140,11 @@ async def logout():
         print("Already logged out")
         return redirect("/")
 
-
 @app.route("/", methods=["GET", "POST"])
 async def root():
     if request.method == "GET":
+        # check module versions
+        check_versions()
         # Check client
         if not session.get("phone"):
             return await render_template("form_frame.html", content=PHONE_FORM)
@@ -182,9 +186,9 @@ async def root():
         print("Empty form")
         return await render_template("form_frame.html", content=result)
 
-
 @app.route("/get_messages", methods=["GET"])
 async def get_messages():
+
     messages = []
 
     input_channel = str(request.args.get("channel_id"))
@@ -215,6 +219,20 @@ async def get_messages():
         except Exception as e:
             print(f"Cannot get all messages for {input_channel}", e)
             return jsonify({"success": False, "messages": messages})
+
+def check_versions():
+    has_gpu = torch.cuda.is_available()
+    has_mps = getattr(torch,'has_mps',False)
+    device = "mps" if getattr(torch,'has_mps',False) \
+        else "gpu" if torch.cuda.is_available() else "cpu"
+
+    print(f"Python Platform: {platform.platform()}")
+    print(f"PyTorch Version: {torch.__version__}")
+    print(f"Python {sys.version}")
+    print("GPU is", "available" if has_gpu else "NOT AVAILABLE")
+    print("MPS (Apple Metal) is", "AVAILABLE" if has_mps else "NOT AVAILABLE")
+    print(f"Target device is {device}")
+
 
 if __name__ == "__main__":
     app.run(debug=True)
