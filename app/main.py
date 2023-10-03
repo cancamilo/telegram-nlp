@@ -1,14 +1,13 @@
 import base64
 import os
 import sys
-import torch
 import platform
+import torch
 from dotenv import load_dotenv, find_dotenv
 from quart import Quart, session, render_template, request, redirect, jsonify
 from telethon import TelegramClient, utils
 from telethon.errors import SessionPasswordNeededError
-
-import asyncio
+from transformers import AutoModelForSequenceClassification
 
 load_dotenv(find_dotenv())
 
@@ -162,7 +161,7 @@ async def root():
 
             return await render_template("inference_frame.html", content="empty")
         else:
-            # TODO: phone exists in session but client is not authorized. Redirect to login?
+            # Redirect to login ?
             return await render_template("form_frame.html", content=PHONE_FORM)
 
     if request.method == "POST":
@@ -188,6 +187,7 @@ async def root():
 
 @app.route("/get_messages", methods=["GET"])
 async def get_messages():
+    from predictor import Predictor
 
     messages = []
 
@@ -211,10 +211,13 @@ async def get_messages():
             
         print("fetching data for ", input_channel)
         try:
-            async for msg in client.iter_messages(input_channel, n_messages):
-                print(msg.message)
+            async for msg in client.iter_messages(input_channel, 10):
                 messages.append(msg.message)
 
+            filtered_messages = [m for m in messages if m != None and len(m) > 2]
+            pred = Predictor()
+            result = pred.compute_predictions(filtered_messages)
+            print(result)
             return jsonify({"success": True, "messages": messages})
         except Exception as e:
             print(f"Cannot get all messages for {input_channel}", e)
@@ -232,7 +235,6 @@ def check_versions():
     print("GPU is", "available" if has_gpu else "NOT AVAILABLE")
     print("MPS (Apple Metal) is", "AVAILABLE" if has_mps else "NOT AVAILABLE")
     print(f"Target device is {device}")
-
 
 if __name__ == "__main__":
     app.run(debug=True)
