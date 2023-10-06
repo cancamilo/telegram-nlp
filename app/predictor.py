@@ -1,14 +1,21 @@
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
-# from datasets import load_dataset, load_metric, Dataset
+import torch.nn.functional as F
 
-class Predictor:    
+# from datasets import load_dataset, load_metric, Dataset
+class Predictor:
+
+    NEGATIVE = 0
+    NEUTRAL = 1
+    POSITIVE = 2
 
     model_name = "app/models/telegram_multiclass_1"
 
-    def __init__(self, model_id = model_name):
+    def __init__(self, model_id=model_name):
         self.tokenizer = AutoTokenizer.from_pretrained("ProsusAI/finbert")
-        self.model = AutoModelForSequenceClassification.from_pretrained(model_id, num_labels=3)
+        self.model = AutoModelForSequenceClassification.from_pretrained(
+            model_id, num_labels=3
+        )
         self.device = self.get_device()
         if self.device != "cpu":
             self.model.to(self.device)
@@ -20,8 +27,10 @@ class Predictor:
         return device
 
     def preprocess_function(self, examples):
-        return self.tokenizer(examples["clean_message"], padding="max_length", truncation=True)
-    
+        return self.tokenizer(
+            examples["clean_message"], padding="max_length", truncation=True
+        )
+
     def prepare_data(messages):
         pass
 
@@ -37,11 +46,11 @@ class Predictor:
                 padding="max_length",
                 truncation=True,
                 return_attention_mask=True,
-                return_tensors='pt'
+                return_tensors="pt",
             )
 
-            input_ids.append(encoded_dict['input_ids'])
-            attention_masks.append(encoded_dict['attention_mask'])
+            input_ids.append(encoded_dict["input_ids"])
+            attention_masks.append(encoded_dict["attention_mask"])
 
         input_ids = torch.cat(input_ids, dim=0).to(self.device)
         attention_masks = torch.cat(attention_masks, dim=0).to(self.device)
@@ -53,8 +62,21 @@ class Predictor:
         with torch.no_grad():
             outputs = self.model(input_ids, attention_mask=attention_masks)
             logits = outputs.logits
+            probabilities = F.softmax(logits, dim=1)
             predictions = torch.argmax(logits, dim=1)
-        return predictions    
+        return predictions, probabilities
+
+    def top_negative(self, messages, probs, n = 10):
+        prob_np = probs.cpu().numpy()
+        idx = prob_np[:, self.NEGATIVE].argsort()[::-1]
+        most_negative = [messages[i] for i in list(idx[:n])]
+        return most_negative
+
+    def top_positive(self, messages, probs, n = 10):
+        prob_np = probs.cpu().numpy()
+        idx = prob_np[:, self.POSITIVE].argsort()[::-1]
+        most_negative = [messages[i] for i in list(idx[:n])]
+        return most_negative
 
     def compute_predictions_batch(model, dataloader, device):
         predictions = None
@@ -74,4 +96,3 @@ class Predictor:
             else:
                 predictions = torch.cat((predictions, torch.argmax(logits, dim=-1)))
                 references = torch.cat((references, batch["labels"]))
-

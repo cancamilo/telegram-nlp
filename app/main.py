@@ -11,6 +11,7 @@ from transformers import AutoModelForSequenceClassification
 
 load_dotenv(find_dotenv())
 
+
 def get_env(name, message):
     if name in os.environ:
         return os.environ[name]
@@ -115,18 +116,20 @@ async def find_client(phone):
     clients[phone] = client
     return client
 
+
 async def remove_client(phone):
     client = clients.get(
         phone, TelegramClient(f"{sessions_path}/{phone}", API_ID, API_HASH)
-    )    
+    )
     await client.connect()
     await client.log_out()
     clients[phone] = None
 
+
 @app.route("/logout", methods=["GET"])
 async def logout():
     print("logging out")
-    
+
     phone_number = session.pop("phone", None)
     if phone_number is not None:
         try:
@@ -138,6 +141,7 @@ async def logout():
     else:
         print("Already logged out")
         return redirect("/")
+
 
 @app.route("/", methods=["GET", "POST"])
 async def root():
@@ -185,6 +189,7 @@ async def root():
         print("Empty form")
         return await render_template("form_frame.html", content=result)
 
+
 @app.route("/get_messages", methods=["GET"])
 async def get_messages():
     from predictor import Predictor
@@ -199,16 +204,16 @@ async def get_messages():
 
     phone = session["phone"]
     if phone is None:
-        return jsonify({"success": False})    
-    
+        return jsonify({"success": False})
+
     print("fetching client...")
-    client = await find_client(phone)    
-    
+    client = await find_client(phone)
+
     async with client:
         # Ensure you're authorized
         if not await client.is_user_authorized():
             raise Exception("Client not auhtorized")
-            
+
         print("fetching data for ", input_channel)
         try:
             async for msg in client.iter_messages(input_channel, 10):
@@ -216,18 +221,33 @@ async def get_messages():
 
             filtered_messages = [m for m in messages if m != None and len(m) > 2]
             pred = Predictor()
-            result = pred.compute_predictions(filtered_messages)
-            print(result)
-            return jsonify({"success": True, "messages": messages})
+            _, probs = pred.compute_predictions(filtered_messages)
+            positive = pred.top_positive(messages, probs)
+            negative = pred.top_negative(messages, probs)
+            return jsonify(
+                {
+                    "success": True,
+                    "positive_messages": positive,
+                    "negative_messages": negative,
+                }
+            )
         except Exception as e:
             print(f"Cannot get all messages for {input_channel}", e)
-            return jsonify({"success": False, "messages": messages})
+            return jsonify(
+                {"success": False, "positive_messages": [], "negative_messages": []}
+            )
+
 
 def check_versions():
     has_gpu = torch.cuda.is_available()
-    has_mps = getattr(torch,'has_mps',False)
-    device = "mps" if getattr(torch,'has_mps',False) \
-        else "gpu" if torch.cuda.is_available() else "cpu"
+    has_mps = getattr(torch, "has_mps", False)
+    device = (
+        "mps"
+        if getattr(torch, "has_mps", False)
+        else "gpu"
+        if torch.cuda.is_available()
+        else "cpu"
+    )
 
     print(f"Python Platform: {platform.platform()}")
     print(f"PyTorch Version: {torch.__version__}")
@@ -235,6 +255,7 @@ def check_versions():
     print("GPU is", "available" if has_gpu else "NOT AVAILABLE")
     print("MPS (Apple Metal) is", "AVAILABLE" if has_mps else "NOT AVAILABLE")
     print(f"Target device is {device}")
+
 
 if __name__ == "__main__":
     app.run(debug=True)
