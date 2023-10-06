@@ -216,7 +216,7 @@ async def get_messages():
 
         print("fetching data for ", input_channel)
         try:
-            async for msg in client.iter_messages(input_channel, 10):
+            async for msg in client.iter_messages(input_channel, n_messages):
                 messages.append(msg.message)
 
             filtered_messages = [m for m in messages if m != None and len(m) > 2]
