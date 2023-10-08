@@ -65,27 +65,29 @@
     });
 
     function getMessages() {
-      // console.log("getting messages")
-      // var channelId = document.getElementById('channelInput').value;
-      // fetch(`get_messages?channel_id=${channelId}&n=${500}`)
-      //   .then(response => response.json())
-      //   .then(data => {
-      //     if (data.success) {
-      //       renderList(data.positive_messages, 'positiveList')
-      //       renderList(data.negative_messages, 'negativeList')
-      //     } else {
-      //       console.log("could not fetch messages???")
-      //     }
-      //   }).catch(e=> console.log(e))
 
-      m = ["qwev23rtb35tb53b53b53b35tvr", "1233eddweknciwbehbchjwebcj", 3, 4, 5, 6, 7, 8, 9, 10]
+      console.log("getting messages")
+      var channelId = document.getElementById('channelInput').value;
+      fetch(`get_messages?channel_id=${channelId}&n=${2000}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            renderList(data.positive_messages, 'positiveList')
+            renderList(data.negative_messages, 'negativeList')
+          } else {
+            console.log("could not fetch messages???")
+          }
+        }).catch(e=> console.log(e))
 
-      renderList(m, 'positiveList')
-      renderList(m, 'negativeList')
+      // styles debugging
+      // m = ["1", "2", 3, 4, 5, 6, 7, 8, 9, 10]
+      // renderList(m, 'positiveList')
+      // renderList(m, 'negativeList')
 
     }
 
     function renderList(messages, listId) {
+      clearList(listId)
       const listElement = document.getElementById(listId);
       messages.forEach(element => {
         const listItem = document.createElement('li');
@@ -93,13 +95,15 @@
         listElement.appendChild(listItem);
       });
     }
+    
+    function clearList(listId) {
+      const listElement = document.getElementById(listId);
+      listElement.innerHTML = ""
+    }
 
     function clearLists() {
-      const positiveList = document.getElementById('positiveList');
-      positiveList.innerHTML = ""
-
-      const negativeList = document.getElementById('negativeList');
-      negativeList.innerHTML = ""
+      clearList('positiveList')
+      clearList('negativeList')
     }
   </script>
 </body>
