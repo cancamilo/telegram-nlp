@@ -23,13 +23,11 @@
 ## Backend
 
 - Implement logic to remember user session
-    - Fix the login logic. If the session exists, and the user logs out, on logging again the flow will not work.
+    - Fix the login logic. If the session exists, and the user logs out, on logging again the flow will not work. [x]
 
 ## Frontend
 
-- Find out how to deploy a simple frontend where the service can be used. e.g Giving a channel ID and getting the best/worst comments. []
-
-- Implement with react + typescript.
+- Find out how to deploy a simple frontend where the service can be used. e.g Giving a channel ID and getting the best/worst comments. [x]
 
 ## Other
 
@@ -39,9 +37,19 @@
 
 - Expriment with fine tuning LAMA locally. Explained here https://www.youtube.com/watch?v=3fsn19OI_C8&ab_channel=AbhishekThakur
 
-- Frontend
+## Improvements to the sentiment classifier app
 
-Keep 
+- Make useful notebooks into scripts:
+    - Fetching telegram data for a list of channels. []
+    - Autolabeling for sentiment classification with openAI []
+    - Model training
+
+- Website improvements:
+    - Add dates to the messages for better reading []
+    - Add message history for each of the messages dislayed []
+    - Deploy to the cloud []
+    - Show progress bar while waiting for the results. []
+    - Add pagination to the message lists. []
 
 
 
