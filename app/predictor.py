@@ -66,17 +66,17 @@ class Predictor:
             predictions = torch.argmax(logits, dim=1)
         return predictions, probabilities
 
-    def top_negative(self, messages, probs, n = 10):
+    def top_negative(self, messages, probs, n = 50):
         prob_np = probs.cpu().numpy()
         idx = prob_np[:, self.NEGATIVE].argsort()[::-1]
         most_negative = [messages[i] for i in list(idx[:n])]
         return most_negative
 
-    def top_positive(self, messages, probs, n = 10):
+    def top_positive(self, messages, probs, n = 50):
         prob_np = probs.cpu().numpy()
         idx = prob_np[:, self.POSITIVE].argsort()[::-1]
-        most_negative = [messages[i] for i in list(idx[:n])]
-        return most_negative
+        most_positive = [messages[i] for i in list(idx[:n])]
+        return most_positive
 
     def compute_predictions_batch(model, dataloader, device):
         predictions = None

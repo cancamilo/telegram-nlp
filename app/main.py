@@ -219,16 +219,16 @@ async def get_messages():
             async for msg in client.iter_messages(input_channel, n_messages):
                 messages.append(msg.message)
 
-            filtered_messages = [m for m in messages if m != None and len(m) > 2]
+            filtered_messages = [m for m in messages if m != None and len(m) > 5]
             pred = Predictor()
             _, probs = pred.compute_predictions(filtered_messages)
-            positive = pred.top_positive(messages, probs)
-            negative = pred.top_negative(messages, probs)
+            positive = pred.top_positive(filtered_messages, probs)
+            negative = pred.top_negative(filtered_messages, probs)
             return jsonify(
                 {
                     "success": True,
-                    "positive_messages": positive,
-                    "negative_messages": negative,
+                    "positive_messages": list(positive),
+                    "negative_messages": list(negative),
                 }
             )
         except Exception as e:
