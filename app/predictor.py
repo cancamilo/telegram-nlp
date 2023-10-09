@@ -31,9 +31,6 @@ class Predictor:
             examples["clean_message"], padding="max_length", truncation=True
         )
 
-    def prepare_data(messages):
-        pass
-
     def tokenize_messages(self, messages):
         input_ids = []
         attention_masks = []
