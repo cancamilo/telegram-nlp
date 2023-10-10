@@ -59,6 +59,21 @@ to remove a conda environment:
 
 ```conda env remove --name $env```
 
+### Dealing with external modules
+
+The easiest way to enable using external modules is using the following code:
+
+```
+modules_path = os.path.join(os.getcwd(), "modules")
+if modules_path not in sys.path:
+    print("modules not in sys path. Inserting", modules_path)
+    sys.path.insert(0, modules_path)
+```
+
+It works both for python scripts and notebooks. 
+
+An alternative is to set the environemtn variable PYTHONPATH=${PWD}/your_module but it is not enough to set it in your python script or notebook with load_env(). It needs to be exported before. e.g source .env. Note that the variable has to be present in the .env file and it must have the keyword export in order to work.
+
 ## TODO's
 
 - Form a thread by getting all the previous messages for a particular message. Useful for interpreting the sentiment of a comment. Done.
