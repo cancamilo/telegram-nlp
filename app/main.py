@@ -192,7 +192,7 @@ async def root():
 
 @app.route("/get_messages", methods=["GET"])
 async def get_messages():
-    from predictor import Predictor
+    from sentiment_predictor import SentimentPredictor
 
     messages = []
 
@@ -220,7 +220,7 @@ async def get_messages():
                 messages.append(msg.message)
 
             filtered_messages = [m for m in messages if m != None and len(m) > 5]
-            pred = Predictor()
+            pred = SentimentPredictor()
             _, probs = pred.compute_predictions(filtered_messages)
             positive = pred.top_positive(filtered_messages, probs)
             negative = pred.top_negative(filtered_messages, probs)

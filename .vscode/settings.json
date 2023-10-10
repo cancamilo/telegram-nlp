@@ -1,0 +1,8 @@
+{
+    "jupyter.exportWithOutputEnabled": false,
+    "jupyter.notebookFileRoot": "${workspaceFolder}",
+    "python.analysis.extraPaths": [
+        "./app",
+        "./modules"
+    ]
+}

@@ -2,8 +2,7 @@ import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch.nn.functional as F
 
-# from datasets import load_dataset, load_metric, Dataset
-class Predictor:
+class SentimentPredictor:
 
     NEGATIVE = 0
     NEUTRAL = 1
