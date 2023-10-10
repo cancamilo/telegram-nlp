@@ -51,5 +51,10 @@
     - Show progress bar while waiting for the results. []
     - Add pagination to the message lists. []
 
+## Semantic search
+
+- Separate query encoding from documents encoding into functions. Create some modules for simplifying and organizing code.
+- Build demo in the notebook with langchain or similar tools.
+
 
 

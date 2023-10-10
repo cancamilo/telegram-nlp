@@ -2,3 +2,5 @@
 *.csv
 **/*.env
 models
+*.session
+*/__pycache__/**
