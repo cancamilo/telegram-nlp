@@ -42,7 +42,7 @@
 - Make useful notebooks into scripts:
     - Fetching telegram data for a list of channels. []
     - Autolabeling for sentiment classification with openAI []
-    - Model training
+    - Model training []
 
 - Website improvements:
     - Add dates to the messages for better reading []
@@ -50,6 +50,7 @@
     - Deploy to the cloud []
     - Show progress bar while waiting for the results. []
     - Add pagination to the message lists. []
+    - Add date filters before running classification job. []
 
 ## Semantic search
 

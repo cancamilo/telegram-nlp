@@ -219,7 +219,12 @@ async def get_messages():
             async for msg in client.iter_messages(input_channel, n_messages):
                 messages.append(msg.message)
 
+            # remove empty messages
             filtered_messages = [m for m in messages if m != None and len(m) > 5]
+
+            # remove duplicated messages
+            filtered_messages = list(set(filtered_messages))
+
             pred = SentimentPredictor()
             _, probs = pred.compute_predictions(filtered_messages)
             positive = pred.top_positive(filtered_messages, probs)
