@@ -57,7 +57,10 @@
 
 - Separate query encoding from documents encoding into functions. Create some modules for simplifying and organizing code. [x]
 - Build demo in the notebook with langchain or similar tools. [x]
-- Extend langchain demo using OpenAI embeddings. []
+- Extend langchain demo using OpenAI embeddings. [x]
+- Add the full history of conversations for each message. [] 
+- Experiment with different templates and parameters to improve the qa retrieval face. []
+- Integrate the search functionality into the web application. []
 - Extend langchain demo using local model or open source model embeddings . []
 
 
