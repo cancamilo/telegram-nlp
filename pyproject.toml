@@ -16,6 +16,8 @@ python-dotenv = "^1.0.0"
 pinecone-client = "^2.2.4"
 sentence-transformers = "^2.2.2"
 langchain = "^0.0.312"
+chromadb = "^0.4.14"
+tiktoken = "^0.5.1"
 
 
 [build-system]

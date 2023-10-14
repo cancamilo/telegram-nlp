@@ -33,7 +33,7 @@
 
 
 - Fint out how to do a similar but more advanced service for semantic search in telegram channels. 
-    - Investigate what kind of data is needed for this. []
+    - Investigate what kind of data is needed for this. [x]
 
 - Expriment with fine tuning LAMA locally. Explained here https://www.youtube.com/watch?v=3fsn19OI_C8&ab_channel=AbhishekThakur
 

@@ -4,3 +4,6 @@
 models
 *.session
 */__pycache__/**
+
+# do not include any chroma persisted data
+/chroma/**
