@@ -75,7 +75,7 @@ services:
       # Specify openai model provider: "openai" or "azure"
       - OPENAI_PROVIDER=openai
       # Specify API key for openai or azure
-      - OPENAI_API_KEY=sk-proj-CaF78NoET5cSAbNxDU72T3BlbkFJ6b7eR5nH0Gr8JwNbU7Bu
+      - OPENAI_API_KEY=
       # Specify model name for openai or azure (by default it uses "gpt-3.5-turbo")
       - OPENAI_MODEL=gpt-3.5-turbo
       # Internal prompt template for the model is:
