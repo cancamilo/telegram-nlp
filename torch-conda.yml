@@ -1,0 +1,28 @@
+name: pytorch-metal
+channels:
+  - pytorch
+  - conda-forge
+  - huggingface
+dependencies:
+    - python=3.9
+    - pip>=19.0
+    - pytorch 
+    - torchvision 
+    - jupyter
+    - scikit-learn
+    - scipy
+    - pandas
+    - pandas-datareader
+    - matplotlib
+    - pillow
+    - tqdm
+    - requests
+    - h5py
+    - pyyaml
+    - quart
+    - boto3
+    - ipykernel
+    - datasets
+    - pip:
+        - bayesian-optimization
+        

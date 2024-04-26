@@ -1,3 +1,54 @@
+# TODO
+
+- define purpose of the repository
+
+    - showcase various nlp tasks using scrapped data from social media channels. 
+    - get insights into the crytocurrency markets using nlp techniques
+    - Utilize advanced AI tools to understand, summarize and generate crypto text
+
+current work done:
+
+- environment setup
+- data extraction from telegram and preprocessing
+- label studio configuration for data labeling with openai
+- binary sentiment classifier training
+- multiclass classifier training
+- training with sagemaker + hugging face
+- inference using the trained models
+- semantic search
+- langchain qa
+- application with telegram loggin
+
+
+
+next steps:
+
+rerun previous work to check everything ok
+document previous work (each notebook)
+define the project structure
+
+
+some tasks in no specific order
+
+- describe environment installation steps and how the torch_test notebook checks everything ok.
+
+- Integrate different text sources and different tasks
+
+## Project structure
+
+- Introduction describing goals, approach, conclusions.
+- Environment setup
+- Checking pytorch installation by training a model (torch_test.ipynb)
+- Data fetching (telegram-data-fetching.ipynb)
+- Alternative approach with label studio (label-studio-setup.ipynb)
+- Model inference and fine tuning (telegram_sentiment_fine_tuning_multiclass.ipynb)
+- Fine tunning with hugging face and sagemaker
+- Inference examples and demo application
+- Langchain QA
+
+- Summarization
+    - Leave it as future work
+
 
 ## AWS
 
@@ -19,11 +70,6 @@ The prerequisities are:
 ### Common s3 commands
 
 The aws cli commands need to include the `--profile {profile_name}`
-
-
-
-
-
 
 ## Environments
 

@@ -7,3 +7,6 @@ models
 
 # do not include any chroma persisted data
 /chroma/**
+
+# ignore label studio db data
+/label-studio/postgres-data/**
