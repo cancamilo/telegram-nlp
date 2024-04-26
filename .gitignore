@@ -8,5 +8,8 @@ models
 # do not include any chroma persisted data
 /chroma/**
 
+#ignore notebooks data
+/notebooks/data/**
+
 # ignore label studio db data
 /label-studio/postgres-data/**
