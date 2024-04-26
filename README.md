@@ -1,54 +1,74 @@
-# TODO
+# Crypto-NLP 
 
-- define purpose of the repository
+Welcome to the Crypto-NLP Tools project! This project is designed to demonstrate some Natural Language Processing (NLP) tasks using data scraped from social media channels. The notebooks and scripts in this repository aim demonstrate how the usage of AI can provide a deeper understanding of the crypto market trends and sentiments expressed across various social media platforms.
 
-    - showcase various nlp tasks using scrapped data from social media channels. 
-    - get insights into the crytocurrency markets using nlp techniques
-    - Utilize advanced AI tools to understand, summarize and generate crypto text
+The project is strcutured as follows:
 
-current work done:
-
-- environment setup
-- data extraction from telegram and preprocessing
-- label studio configuration for data labeling with openai
-- binary sentiment classifier training
-- multiclass classifier training
-- training with sagemaker + hugging face
-- inference using the trained models
-- semantic search
-- langchain qa
-- application with telegram loggin
-
-
-
-next steps:
-
-rerun previous work to check everything ok
-document previous work (each notebook)
-define the project structure
-
-
-some tasks in no specific order
-
-- describe environment installation steps and how the torch_test notebook checks everything ok.
-
-- Integrate different text sources and different tasks
-
-## Project structure
-
-- Introduction describing goals, approach, conclusions.
-- Environment setup
-- Checking pytorch installation by training a model (torch_test.ipynb)
-- Data fetching (telegram-data-fetching.ipynb)
-- Alternative approach with label studio (label-studio-setup.ipynb)
+- [How to setup your environment](#how-to-setup-your-environment)
+    - [Poetry](#poetry)
+    - [Conda](#conda)
+    - [Checking pytorch installation](#pytorch-environemnt-check)
+    
+- Data fetching (telegram-data-fetching.ipynb) and autolabeling
+- Data Labeling with label studio (label-studio-setup.ipynb)
 - Model inference and fine tuning (telegram_sentiment_fine_tuning_multiclass.ipynb)
 - Fine tunning with hugging face and sagemaker
-- Inference examples and demo application
-- Langchain QA
+- Inference module
+- RAG with telegram data
+- Demo application
+- Future work
 
-- Summarization
-    - Leave it as future work
+## How to setup your environment
 
+Depending on the script or notebook that you want to execute, there are two different ways to setup a python environemnt.
+If pytorch is needed for training or inference, it is convient to use the conda environment. It specify the required dependencies to install pytorch on a Mac with M1/M2. For a different hardware setup, check the specific requirements. For scripts that do not make use of pytorch, the poetry environment is prefered as it is a more advance dependency managment tool.
+
+### Poetry
+
+Dependencies are Defined in the pyproject.toml file. 
+To install just run: 
+
+```console
+poetry install
+```
+This environment should be used in all notebooks that do not have the pytorch dependency.
+
+### Conda
+
+Dependencies are defined in the torch-conda.yml file.
+To create a conda environment from a yaml file:
+
+```console
+conda env create -f environment.yml
+```
+
+Other useful conda commands for managing environments:
+
+to create a conda environemnt with a specific python version
+
+```console
+conda create -n tensorenv python=3.10
+```
+
+to activate the environment:
+
+```console
+conda activate tensorenv
+```
+
+to install a dependency inside the environment:
+
+```console
+conda install tesorflow
+```
+
+to remove a conda environment:
+
+```console
+conda env remove --name $env
+```
+
+### Pytorch environment check 
 
 ## AWS
 
@@ -71,39 +91,6 @@ The prerequisities are:
 
 The aws cli commands need to include the `--profile {profile_name}`
 
-## Environments
-
-There are two different ways to setup a python environemnt:
-
-### Poetry
-
-Dependencies are Defined in the pyproject.toml file. 
-
-To install just run ```poetry install```
-
-### Conda
-
-It is neccesary to have an additional way to setup the environment with conda since it supports pytorch and tensorflow.
-
-to create a conda environemnt with a specific python version
-
-```conda create -n tensorenv python=3.10```
-
-to activate the environment:
-
-```conda activate tensorenv```
-
-to install a dependency inside the environment:
-
-```conda install tesorflow```
-
-to create a conda environment from a yaml file:
-
-```conda env create -f environment.yml```
-
-to remove a conda environment:
-
-```conda env remove --name $env```
 
 ### Dealing with external modules
 
@@ -119,18 +106,6 @@ if modules_path not in sys.path:
 It works both for python scripts and notebooks. 
 
 An alternative is to set the environemtn variable PYTHONPATH=${PWD}/your_module but it is not enough to set it in your python script or notebook with load_env(). It needs to be exported before. e.g source .env. Note that the variable has to be present in the .env file and it must have the keyword export in order to work.
-
-## TODO's
-
-- Form a thread by getting all the previous messages for a particular message. Useful for interpreting the sentiment of a comment. Done.
-
-- Compare the labeled dataset to the pretrained model in the colab. Find some performance metrics.
-
-- Fine tune some model with the labeled data
-
-- Repeath the steps above to check if the fine tuned model has improved.
-
-Note that all of the above makes sense if the labeled data has a good quality so I should check that first...
 
 
 
