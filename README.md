@@ -1,20 +1,22 @@
 # Crypto-NLP 
 
-Welcome to the Crypto-NLP Tools project! This project is designed to demonstrate some Natural Language Processing (NLP) tasks using data scraped from social media channels. The notebooks and scripts in this repository aim demonstrate how the usage of AI can provide a deeper understanding of the crypto market trends and sentiments expressed across various social media platforms.
+Welcome to the Crypto-NLP Tools project! This project is designed to showcase some natural language processing (NLP) tasks using data scraped from social media channels. The notebooks and scripts in this repository aim to demonstrate how the usage of machine learning can provide a deeper understanding of the crypto market trends and sentiments expressed across various social media platforms.
 
 The project is strcutured as follows:
 
 - [How to setup your environment](#how-to-setup-your-environment)
     - [Poetry](#poetry)
     - [Conda](#conda)
-    - [Checking pytorch installation](#pytorch-environemnt-check)
-    
-- Data fetching (telegram-data-fetching.ipynb) and autolabeling
-- Data Labeling with label studio (label-studio-setup.ipynb)
-- Model inference and fine tuning (telegram_sentiment_fine_tuning_multiclass.ipynb)
-- Fine tunning with hugging face and sagemaker
-- Inference module
-- RAG with telegram data
+    - [Checking pytorch installation](#pytorch-environment-check)
+
+- [Sentiment Classification](#sentiment-classification)
+    - [Data fetching and autolabeling](#data-fetching-and-autolabeling)
+    - [Data Labeling with label studio](#data-labeling-with-label-studio)
+    - [Model inference and fine tuning](#model-inference-and-fine-tuning)
+    - [Fine tunning with hugging face and sagemaker](#fine-tunning-with-hugging-face-and-sagemaker)
+    - [Inference module](#inference-module)
+
+- [RAG with telegram data]
 - Demo application
 - Future work
 
@@ -22,6 +24,8 @@ The project is strcutured as follows:
 
 Depending on the script or notebook that you want to execute, there are two different ways to setup a python environemnt.
 If pytorch is needed for training or inference, it is convient to use the conda environment. It specify the required dependencies to install pytorch on a Mac with M1/M2. For a different hardware setup, check the specific requirements. For scripts that do not make use of pytorch, the poetry environment is prefered as it is a more advance dependency managment tool.
+
+Note that you also need docker installed in your machine in order to run label-studio.
 
 ### Poetry
 
@@ -68,7 +72,50 @@ to remove a conda environment:
 conda env remove --name $env
 ```
 
-### Pytorch environment check 
+### Pytorch environment check
+
+The installation of the pytorch dependencies can be verified by executing [this notebook](/notebooks/torch_test.ipynb). The code loads a standard dataset and uses it to fine tune a pretrained model.
+
+## Sentiment classification
+
+Classifying messages of social media channels can provide insights into the general cryptocurrency market sentiment and the overall community sentiment towards a specific cryptocurrency project. 
+
+This section summarizes the tools for fetching, labeling and model training for the purpose of sentiment classification.
+
+## Data fetching and autolabeling
+
+The first task is to fetch data from several telegram cryptucurrency channels and label each message as either positive, neutral or negative. The labeled dataset is then used to train a sentiment classifier model. The process can be reproduced by executing the [telegram_data_detching notebook](/notebooks/telegram_data_fetching.ipynb). Note that for this step, an openai key is required in order to perform the autolabeling of the dataset. 
+
+The output of this notebook should be two different csv file:
+
+- data/chat_messages_clean.csv: fetched messages with some cleaning without labeling.
+- labeled/prediction_df_{start}_{end}.csv: multiple csv files with labeled messages that will serve as the input for training a classification model.
+
+## Data Labeling with label studio
+
+As an alternative to the previous labeling process, we can make use of label studio for assigning classes to our message samples.
+
+Label studio can be run by executing 
+
+```console
+docker-compose -f label-studio/labelstudio-docker-compose.yml up -d
+```
+
+This command will spin up several services required to run label studio.
+
+The next step is to execute the [label studio project setup notebook](/notebooks/label-studio-setup.ipynb). This code will read the previously fetched raw data (data/chat_messages_clean.csv), create a new project for text classification and append the raw data to it.
+
+Now we can navigate to [http:localhost:8080] where we have access to label studio UI. Under projects we will find the previously created project and we can start manually labeling the data.
+
+Instead of manually labeling the messages, we can use the ML backend service which utilizes gtp 3.5 in the background to make predictions on our dataset. The service can provide us with predictions on our entire dataset on demand. To achieve this, follow [this guide](https://labelstud.io/blog/automate-data-labeling-with-llms-and-prompt-interface/).
+
+## Model inference and fine tuning
+
+## Fine tunning with hugging face and sagemaker
+
+## Inference module
+
+
 
 ## AWS
 
