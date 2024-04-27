@@ -76,6 +76,31 @@ conda env remove --name $env
 
 The installation of the pytorch dependencies can be verified by executing [this notebook](/notebooks/torch_test.ipynb). The code loads a standard dataset and uses it to fine tune a pretrained model.
 
+### Telegram login
+
+Some of the code requires to have access to telegram data. You need to be registered to telegram and acquire an API ID, API hash, phone number and username. All these variables can be set in the .env file. Refer to [this file](example.env) to fill in the required variables.
+
+### AWS
+
+Some of the notebooks in this repository can only be executed on the aws sagemaker environenment. This requires setting up an aws account.
+
+### Login with AWS CLI
+
+The detail process is detailed in this link:
+
+https://docs.aws.amazon.com/singlesignon/latest/userguide/howtogetcredentials.html
+
+The prerequisities are:
+
+- Install the aws CLI
+
+- You need to enable the IAM identity center service in your AWS acount. Then you will need to create a user, a permission set and assing that user to the permission set. 
+
+- Execute `aws sso configure` to initiate a wizard that will guide you to the next steps. This step will create a configuration for the created user and will renew the credentials automatically when needed. 
+
+
+Note: the aws cli commands need to include the `--profile {profile_name}`
+
 ## Sentiment classification
 
 Classifying messages of social media channels can provide insights into the general cryptocurrency market sentiment and the overall community sentiment towards a specific cryptocurrency project. 
@@ -111,37 +136,30 @@ Instead of manually labeling the messages, we can use the ML backend service whi
 
 ## Model inference and fine tuning
 
+With our labeled data we can proceed to fine tune a pretrained model. I chose the `distilbert-base-uncased` for finetuning which is a lighter and faster version of the BERT model and sufficient for the purpose of this project. 
+
+The notebook for [fine-tunning](/notebooks/telegram_sentiment_fine_tuning_multiclass.ipynb) extracts all the labeled datasets found under the `notebooks/labeled` folder or any other location where the labeled data is saved. 
+
+Initially, a previously pretrained model for sentiment classification without fine tuning is used to check some metrics. Then the `distilbert-base-model`is fine tuned with the telegram labeled data. 
+
+With 5000 samples, a significant improvement is obtained by finetuning over using a default model. This process can be iterated with more data to obtain better performance.
+
 ## Fine tunning with hugging face and sagemaker
+
+To simplify environemnt setup and accelerate training, we can also make use of AWS sagemaker to train our classifier. 
+
+[The hugging face aws notebook](/notebooks/hugging_face_sagemaker_training.ipynb) provides the code to achieve this.
+
+You can also follow [this guide](https://huggingface.co/docs/sagemaker/en/getting-started) for more specific details.
 
 ## Inference module
 
-
-
-## AWS
-
-### Login with AWS CLI
-
-The detail process is detailed in this link:
-
-https://docs.aws.amazon.com/singlesignon/latest/userguide/howtogetcredentials.html
-
-The prerequisities are:
-
-- Install the aws CLI
-
-- You need to enable the IAM identity center service in your AWS acount. Then you will need to create a user, a permission set and assing that user to the permission set. 
-
-- Execute `aws sso configure` to initiate a wizard that will guide you to the next steps. This step will create a configuration for the created user and will renew the credentials automatically when needed. 
-
-
-### Common s3 commands
-
-The aws cli commands need to include the `--profile {profile_name}`
+The inference module is used to perform sentiment predictions on a given test or validation messages dataset. [The inference notebook](/notebooks/simple_inference.ipynb) demonstrates the usage of the [module](/modules/sentiment_predictor.py). 
 
 
 ### Dealing with external modules
 
-The easiest way to enable using external modules is using the following code:
+The easiest way to enable using external modules in python scripts and notebooks is using the following code:
 
 ```
 modules_path = os.path.join(os.getcwd(), "modules")
@@ -150,9 +168,7 @@ if modules_path not in sys.path:
     sys.path.insert(0, modules_path)
 ```
 
-It works both for python scripts and notebooks. 
-
-An alternative is to set the environemtn variable PYTHONPATH=${PWD}/your_module but it is not enough to set it in your python script or notebook with load_env(). It needs to be exported before. e.g source .env. Note that the variable has to be present in the .env file and it must have the keyword export in order to work.
+An alternative is to set the environment variable PYTHONPATH=${PWD}/your_module but it is not enough to set it in your python script or notebook with load_env(). It needs to be exported before. e.g source .env. Note that the variable has to be present in the .env file and it must have the keyword export in order to work.
 
 
 

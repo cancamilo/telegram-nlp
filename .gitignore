@@ -6,7 +6,7 @@ models
 */__pycache__/**
 
 # do not include any chroma persisted data
-/chroma/**
+**/chroma/**
 
 #ignore notebooks data
 /notebooks/data/**
