@@ -4,9 +4,9 @@ import torch.nn.functional as F
 
 class SentimentPredictor:
 
-    NEGATIVE = 0
-    NEUTRAL = 1
-    POSITIVE = 2
+    POSITIVE = 0
+    NEGATIVE = 1
+    NEUTRAL = 2
 
     model_name = "app/models/telegram_multiclass_1"
 

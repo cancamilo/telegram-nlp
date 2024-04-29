@@ -2,12 +2,14 @@
 
 Welcome to the Crypto-NLP Tools project! This project is designed to showcase some natural language processing (NLP) tasks using data scraped from social media channels. The notebooks and scripts in this repository aim to demonstrate how the usage of machine learning can provide a deeper understanding of the crypto market trends and sentiments expressed across various social media platforms.
 
-The project is strcutured as follows:
+The project is structured as follows:
 
 - [How to setup your environment](#how-to-setup-your-environment)
     - [Poetry](#poetry)
     - [Conda](#conda)
     - [Checking pytorch installation](#pytorch-environment-check)
+    - [Telegram login](#telegram-login)
+    - [AWS](#aws)
 
 - [Sentiment Classification](#sentiment-classification)
     - [Data fetching and autolabeling](#data-fetching-and-autolabeling)
@@ -15,10 +17,10 @@ The project is strcutured as follows:
     - [Model inference and fine tuning](#model-inference-and-fine-tuning)
     - [Fine tunning with hugging face and sagemaker](#fine-tunning-with-hugging-face-and-sagemaker)
     - [Inference module](#inference-module)
+    - [Streamlit demo application](#streamlit-demo-application)
 
-- [RAG with telegram data]
-- Demo application
-- Future work
+- [RAG with telegram data](#retrieval-augmented-generation)
+- [Future work](#future-work)
 
 ## How to setup your environment
 
@@ -84,7 +86,7 @@ Some of the code requires to have access to telegram data. You need to be regist
 
 Some of the notebooks in this repository can only be executed on the aws sagemaker environenment. This requires setting up an aws account.
 
-### Login with AWS CLI
+#### Login with AWS CLI
 
 The detail process is detailed in this link:
 
@@ -107,7 +109,7 @@ Classifying messages of social media channels can provide insights into the gene
 
 This section summarizes the tools for fetching, labeling and model training for the purpose of sentiment classification.
 
-## Data fetching and autolabeling
+### Data fetching and autolabeling
 
 The first task is to fetch data from several telegram cryptucurrency channels and label each message as either positive, neutral or negative. The labeled dataset is then used to train a sentiment classifier model. The process can be reproduced by executing the [telegram_data_detching notebook](/notebooks/telegram_data_fetching.ipynb). Note that for this step, an openai key is required in order to perform the autolabeling of the dataset. 
 
@@ -116,7 +118,7 @@ The output of this notebook should be two different csv file:
 - data/chat_messages_clean.csv: fetched messages with some cleaning without labeling.
 - labeled/prediction_df_{start}_{end}.csv: multiple csv files with labeled messages that will serve as the input for training a classification model.
 
-## Data Labeling with label studio
+### Data Labeling with label studio
 
 As an alternative to the previous labeling process, we can make use of label studio for assigning classes to our message samples.
 
@@ -134,7 +136,7 @@ Now we can navigate to [http:localhost:8080] where we have access to label studi
 
 Instead of manually labeling the messages, we can use the ML backend service which utilizes gtp 3.5 in the background to make predictions on our dataset. The service can provide us with predictions on our entire dataset on demand. To achieve this, follow [this guide](https://labelstud.io/blog/automate-data-labeling-with-llms-and-prompt-interface/).
 
-## Model inference and fine tuning
+### Model inference and fine tuning
 
 With our labeled data we can proceed to fine tune a pretrained model. I chose the `distilbert-base-uncased` for finetuning which is a lighter and faster version of the BERT model and sufficient for the purpose of this project. 
 
@@ -144,7 +146,7 @@ Initially, a previously pretrained model for sentiment classification without fi
 
 With 5000 samples, a significant improvement is obtained by finetuning over using a default model. This process can be iterated with more data to obtain better performance.
 
-## Fine tunning with hugging face and sagemaker
+### Fine tunning with hugging face and sagemaker
 
 To simplify environemnt setup and accelerate training, we can also make use of AWS sagemaker to train our classifier. 
 
@@ -152,12 +154,9 @@ To simplify environemnt setup and accelerate training, we can also make use of A
 
 You can also follow [this guide](https://huggingface.co/docs/sagemaker/en/getting-started) for more specific details.
 
-## Inference module
+### Inference module
 
-The inference module is used to perform sentiment predictions on a given test or validation messages dataset. [The inference notebook](/notebooks/simple_inference.ipynb) demonstrates the usage of the [module](/modules/sentiment_predictor.py). 
-
-
-### Dealing with external modules
+The inference module is used to perform sentiment predictions on a given test or validation messages dataset. [The inference notebook](/notebooks/simple_inference.ipynb) demonstrates the usage of the [module](/modules/sentiment_predictor.py).
 
 The easiest way to enable using external modules in python scripts and notebooks is using the following code:
 
@@ -169,6 +168,28 @@ if modules_path not in sys.path:
 ```
 
 An alternative is to set the environment variable PYTHONPATH=${PWD}/your_module but it is not enough to set it in your python script or notebook with load_env(). It needs to be exported before. e.g source .env. Note that the variable has to be present in the .env file and it must have the keyword export in order to work.
+
+### Streamlit demo application
+
+In order to test the sentiment classifier trained in previous steps, you can use the demo application provided in this repository. All the relevant files are under /app. 
+
+As the service performs predictions on text, it requires the pytorch dependency. This dependency and other requirements can be found on the torch environment [dependency file](/torch-conda.yml).
+
+You also need to save a pytorch trained model under app/models for the application to work. The instructions for training a model and saving it can be found in this [notebook](/notebooks/telegram_sentiment_fine_tuning_multiclass.ipynb).
+
+Once this environment is activated and a model is available, you can run the application with `make run-app`
+
+When starting the application, you will be prompted with your telegram phone number in order to access the channel messages. It will send you a verification code to your telegram which you have to input on the login screen. After succesful login, you can input any telegram channel to see the top positive and top negative messages in the channel according to the trained model.
+
+## Retrieval augmented generation
+
+[This notebook](/notebooks/langchain_rag.ipynb) showcases experiments with langchain for answering user specific questions based on the fetched messages from telegram channels for a specific project. It uses openAI embeddings as well as chat models to answer user queries based on the provided context. 
+
+Future work on this section should focus on data sources with better quality such as blogs, official websites and other social media channels.
+
+## Future work
+
+- Extend, improve, dockerize demo application
 
 
 

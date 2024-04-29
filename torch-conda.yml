@@ -19,10 +19,13 @@ dependencies:
     - requests
     - h5py
     - pyyaml
-    - quart
     - boto3
     - ipykernel
     - datasets
+    - python-dotenv
     - pip:
+        - quart
+        - telethon
+        - transformers
         - bayesian-optimization
         
