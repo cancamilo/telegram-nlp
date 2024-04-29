@@ -189,7 +189,10 @@ Future work on this section should focus on data sources with better quality suc
 
 ## Future work
 
-- Extend, improve, dockerize demo application
+- Extend, improve, dockerize demo application.
+- Train model for text summarization.
+- Explore other data sources such as discord and twitter.
+- Integrate market sentiment signals with other features such as technical analysis to perform predictions on markets.
 
 
 
